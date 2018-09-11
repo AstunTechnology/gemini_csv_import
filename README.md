@@ -1,17 +1,19 @@
 # README #
 
-Python script for exporting gemini compliant metadata from a csv file to individual xml files.
+A python script for exporting gemini compliant metadata from a csv file to individual xml files.
+
+The default branch (2.2) is compliant with Gemini 2.2. A branch for Gemini 2.3 will follow in due course.
 
 ### How do I get set up? ###
 
-* Create a virtual environment in the root directory
+* Create a python 2.7 virtual environment in the root directory
 * Activate the virtual environment
 * Install dependencies by running pip install -r requirements.txt
 * See the sample csv file for the correct layout- alternatively change the column mappings in metadata_import.py to match your layout
 * Place your csv file in the input folder
 * Change to the python directory
 * Count the total number of rows in your CSV including the header row and edit the numrows line (28) in metadata_import_.py to match
-* Run python metadata_import_.py
+* Run python metadata_import.py
 * Your xml files will miraculously appear in the output folder
 * Check error.log in the python folder for details of any records that failed- these will be listed by title with the details of the error
 * Encoding errors in the source CSV may currently cause the script to fail. The offending bytecode will be shown in the error message so you can replace it in the source data with the correct symbol
@@ -57,7 +59,6 @@ Python script for exporting gemini compliant metadata from a csv file to individ
   * asNeeded
   * irregular
   * notPlanned
-* If the record is OpenData, modify the script to use the opendata template, DO NOT include it in the list of keywords
 * The copyright statement should not include the copyright symbol, a correctly encoded version of this will be included automatically
 
 ### Who do I talk to? ###

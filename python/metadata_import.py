@@ -31,7 +31,7 @@ class TestMetadataImport(unittest.TestCase):
     
     def testMetadataImport(self):
         raw_data = []
-        numrows = 868
+        numrows = 2
         with open('../input/metadata.csv') as csvfile:
             reader = csv.reader(csvfile, dialect='excel')
             for columns in reader:
@@ -66,6 +66,7 @@ class TestMetadataImport(unittest.TestCase):
                         lineage = columns[26]
                         update_freq = columns[27]
                         inspire_keyword = columns[28]
+                        denomitator = columns[29]
                 
                 print "title: " + title
                 """
@@ -152,8 +153,6 @@ class TestMetadataImport(unittest.TestCase):
                     newkeywordElement.appendChild(newkeywordStringElement)
                     keywordElement.appendChild(newkeywordElement)
 
-
-
                 # add lineage
                 lineage = data[26]
                 lineageElement = dataQualityInfo[0].getElementsByTagName('gmd:lineage')[0]
@@ -165,12 +164,13 @@ class TestMetadataImport(unittest.TestCase):
                 dates = data[20].split(',')
                 beginDate, endDate = '', ''
                 if len(dates) == 2:
-                    if '/' in data[33]:
+                    if '/' in data[20]:
+
                         beginDate = arrow.get(dates[0],'DD/MM/YYYY').format('YYYY-MM-DD')
                         endDate = arrow.get(dates[1],'DD/MM/YYYY').format('YYYY-MM-DD')
-                    elif '-' in data[33]:
+                    elif '-' in data[20]:
                         beginDate = dates[0]
-                        endDate= dates[1]
+                        endDate = dates[1]
                     else:
                         print "Temp extent dates in wrong format"
                     
@@ -193,6 +193,8 @@ class TestMetadataImport(unittest.TestCase):
                 # add distribution format, version, transfer options
                 distFormats = data[21].split(',')
                 versions = data[22].split(',')
+                print "Formats: " + str(distFormats)
+                print "Versions: " + str(versions)
                 nameElement = distributionInfo[0].getElementsByTagName('gmd:MD_Distribution')[0]
 
                 for i, k in zip(distFormats, versions):
@@ -263,6 +265,7 @@ class TestMetadataImport(unittest.TestCase):
                     eastNode = record.createTextNode(east)
                     northNode = record.createTextNode(north)
                     southNode = record.createTextNode(south)
+                    print "BBox: %s,%s,%s,%s" % (west,east,south,north)
                     geoBoundingBoxElement = identificationInfo[0].getElementsByTagName('gmd:EX_GeographicBoundingBox')[0]
                     geoBoundingBoxElement.childNodes[3].childNodes[1].appendChild(westNode)
                     geoBoundingBoxElement.childNodes[5].childNodes[1].appendChild(eastNode)
@@ -274,7 +277,7 @@ class TestMetadataImport(unittest.TestCase):
 
                 # # add extent (geographic description)
                 extent = data[19]
-                extentElement = identificationInfo[0].getElementsByTagName('gmd:code')[2]
+                extentElement = identificationInfo[0].getElementsByTagName('gmd:code')[1]
                 extentNode = record.createTextNode(extent)
                 extentElement.childNodes[1].appendChild(extentNode)
                 print "Extent: " + extent
@@ -284,7 +287,8 @@ class TestMetadataImport(unittest.TestCase):
                 useLimitationElement = identificationInfo[0].getElementsByTagName('gmd:useLimitation')[0]
                 useLimitationNode = record.createTextNode(useLimitation)
                 useLimitationElement.childNodes[1].appendChild(useLimitationNode)
-                
+                print "Use Limitation: " + useLimitation
+
                 # Resource Constraints
                 licenceConstraint = data[12]
                 copyrightConstraint = data[13]
@@ -294,6 +298,8 @@ class TestMetadataImport(unittest.TestCase):
                 copyrightConstraintNode = record.createTextNode(copyrightConstraint)
                 licenceconstraintsElement.childNodes[1].appendChild(licenceConstraintNode)
                 copyrightconstraintsElement.childNodes[1].appendChild(copyrightConstraintNode)
+                print "License Constraint: " + licenceConstraint
+                print "Copyright Contraint: " + copyrightConstraint
 
                 # Points of Contact
                 # TODO copy to top-level gmd:contact too
@@ -303,6 +309,7 @@ class TestMetadataImport(unittest.TestCase):
                 contactOrg = data[8]
                 contactPosition = data[9]
 
+                ## Identification Info Point of Contact
                 contactNameElement = identificationInfo[0].getElementsByTagName('gmd:individualName')[0]
                 contactOrgElement = identificationInfo[0].getElementsByTagName('gmd:organisationName')[0]
                 contactPosElement = identificationInfo[0].getElementsByTagName('gmd:positionName')[0]               
@@ -320,6 +327,29 @@ class TestMetadataImport(unittest.TestCase):
                 contactPosElement.childNodes[1].appendChild(contactPositionNode)
                 contactAddElement.childNodes[1].appendChild(contactAddressNode)
 
+                ## Metadata Point of Contact
+                metadatacontactNameElement = contact[0].getElementsByTagName('gmd:individualName')[0]
+                metadatacontactOrgElement = contact[0].getElementsByTagName('gmd:organisationName')[0]
+                metadatacontactPosElement = contact[0].getElementsByTagName('gmd:positionName')[0]               
+                metadatacontactAddElement = contact[0].getElementsByTagName('gmd:deliveryPoint')[0]
+                metadatacontactEmailElement = contact[0].getElementsByTagName('gmd:electronicMailAddress')[0]
+                
+                metadatacontactNameNode = record.createTextNode(contactName)
+                metadatacontactOrgNode = record.createTextNode(contactOrg)
+                metadatacontactPositionNode = record.createTextNode(contactPosition)
+                metadatacontactAddressNode = record.createTextNode(contactAddress)
+                metadatacontactEmailNode = record.createTextNode(contactEmail)
+                metadatacontactNameElement.childNodes[1].appendChild(metadatacontactNameNode)
+                metadatacontactEmailElement.childNodes[1].appendChild(metadatacontactEmailNode)
+                metadatacontactOrgElement.childNodes[1].appendChild(metadatacontactOrgNode)
+                metadatacontactPosElement.childNodes[1].appendChild(metadatacontactPositionNode)
+                metadatacontactAddElement.childNodes[1].appendChild(metadatacontactAddressNode)
+                print "Name: " + contactName
+                print "Email: " + contactEmail
+                print "Address: " + contactAddress
+                print "Organisation: " + contactOrg
+                print "Position: " + contactPosition
+
                
                 # add dataset reference dates 
                 if '/' in data[2]:
@@ -336,21 +366,30 @@ class TestMetadataImport(unittest.TestCase):
                 if '/' in data[3]:
                     revisionDate = arrow.get(data[3],'DD/MM/YYYY').format('YYYY-MM-DD')
                 elif '-' in data[3]:
-                    creationDate = data[3]
+                    revisionDate = data[3]
                 else:
                     print "revisiondate in wrong format"
                 revisionDateElement = identificationInfo[0].getElementsByTagName('gmd:date')[2]
                 revisionDateNode = record.createTextNode(revisionDate)
                 revisionDateElement.childNodes[1].childNodes[1].childNodes[1].appendChild(revisionDateNode)
+                print "Revision Date: " + revisionDate
 
                 # update frequency
-                updateFrequency = data[26]
+                updateFrequency = data[27]
                 updateFrequencyElement = identificationInfo[0].getElementsByTagName('gmd:MD_MaintenanceFrequencyCode')[0]
                 updateFrequencyNode = record.createTextNode(updateFrequency)
                 updateFrequencyElement.setAttribute("codeListValue", updateFrequency)
                 updateFrequencyElement.appendChild(updateFrequencyNode)
-                print "Update Frequency: " + updateFrequency
-                
+                print "Update Frequency: " + updateFrequency    
+
+                # denominator
+                denominator = data[29]
+                denominatorElement=identificationInfo[0].getElementsByTagName('gmd:denominator')[0]
+                denominatorNode = record.createTextNode(denominator)
+                denominatorElement.childNodes[1].appendChild(denominatorNode)
+                print "Scale: " + denominator
+
+
 
                 # write out the gemini record
                 filename = '../output/%s.xml' % fileId
