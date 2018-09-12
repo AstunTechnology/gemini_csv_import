@@ -69,7 +69,7 @@ target/
 
 # specifics
 
-output
+output/*.xml
 prev_imports
 *.*~
 *.zip
