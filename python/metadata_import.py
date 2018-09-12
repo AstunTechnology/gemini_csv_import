@@ -233,17 +233,11 @@ class TestMetadataImport(unittest.TestCase):
                 print "URL: " + transferURL
 
                 # add transfer protocol
-                transferProtocol = data[22]
+                transferProtocol = data[23]
                 transferProtocolElement = distributionInfo[0].getElementsByTagName('gmd:protocol')[0]
                 transferProtocolNode = record.createTextNode(transferProtocol)
                 transferProtocolElement.childNodes[1].appendChild(transferProtocolNode)
                 print "Protocol: " + transferProtocol
-
-                # add transfer description
-                # transferDesc = data[38]
-                # transferDescElement = distributionInfo[0].getElementsByTagName('gmd:description')[0]
-                # transferDescNode = record.createTextNode(transferDesc)
-                # transferDescElement.childNodes[1].appendChild(transferDescNode)
 
                 # add data quality and repeat it in the level description
                 dataQuality = data[25]
