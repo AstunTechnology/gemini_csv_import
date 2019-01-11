@@ -17,6 +17,7 @@ The default branch (2.2) is compliant with Gemini 2.2. A branch for Gemini 2.3 w
 * Your xml files will miraculously appear in the output folder
 * Check error.log in the python folder for details of any records that failed- these will be listed by title with the details of the error
 * Encoding errors in the source CSV may currently cause the script to fail. The offending bytecode will be shown in the error message so you can replace it in the source data with the correct symbol
+* When importing the records into Geonetwork, use the *_to_gemini* xsl
 
 ### Data Specifics ###
 
