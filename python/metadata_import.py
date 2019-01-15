@@ -124,25 +124,23 @@ class TestMetadataImport(unittest.TestCase):
                 print "Abstract" + abstract
 
                 # add topics from comma-separated list
-                topics = data[14].split(', ')
+                topics = data[14].split(',')
                 topicElement = identificationInfo[0].getElementsByTagName('gmd:topicCategory')[0]
                 for i, t in enumerate(topics):
                     print "Topic: " + t
                     newtopicElement = record.createElement('gmd:MD_TopicCategoryCode')
-                    newtopicNode = record.createTextNode(t)
+                    newtopicNode = record.createTextNode(t.strip())
                     newtopicElement.appendChild(newtopicNode)
                     topicElement.appendChild(newtopicElement)
 
                 # add inspire keywords from comma-separated list
                 # strip spaces from beginning or end of each item
                 inspireKeywords = data[28].split(',')
-                for k in inspireKeywords:
-                    k.strip()
                 inspireKeywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[0]
                 for i, k in enumerate(inspireKeywords):
                     newInspirekeywordElement = record.createElement('gmd:keyword')
                     newInspirekeywordStringElement = record.createElement('gco:CharacterString')
-                    newInspirekeywordNode = record.createTextNode(k)
+                    newInspirekeywordNode = record.createTextNode(k.strip())
                     newInspirekeywordStringElement.appendChild(newInspirekeywordNode)
                     newInspirekeywordElement.appendChild(newInspirekeywordStringElement)
                     inspireKeywordElement.appendChild(newInspirekeywordElement)
@@ -151,14 +149,12 @@ class TestMetadataImport(unittest.TestCase):
                 # add free text keywords from comma-separated list
                 # strip any spaces from beginning or end of each item
                 keywords = data[10].split(',')
-                for k in keywords:
-                    k.strip()
                 keywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[1]
                 for i, k in enumerate(keywords):
                     print "Descriptive Keyword: " + k
                     newkeywordElement = record.createElement('gmd:keyword')
                     newkeywordStringElement = record.createElement('gco:CharacterString')
-                    newkeywordNode = record.createTextNode(k)
+                    newkeywordNode = record.createTextNode(k.strip())
                     newkeywordStringElement.appendChild(newkeywordNode)
                     newkeywordElement.appendChild(newkeywordStringElement)
                     keywordElement.appendChild(newkeywordElement)
