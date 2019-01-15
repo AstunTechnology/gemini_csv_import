@@ -47,7 +47,7 @@ The default branch (2.2) is compliant with Gemini 2.2. A branch for Gemini 2.3 w
 * Temporal Extent can be a comma-separated list (begin date, end date) but dates must be in form YYYY-MM-DD or DD/MM/YYYY
 * Data Format and Version can be comma-separated lists but must come from provided lists of formats and versions, see [iso19139.gemini22/loc/eng/labels.xml](https://github.com/AstunTechnology/iso19139.gemini22_GN3/blob/3.4.x/src/main/plugin/iso19139.gemini22/loc/eng/labels.xml#L1595)
 * Data Quality Info must be one of dataset or nonGeographicDataset (case-sensitive)
-* Inspire theme (case-sensitive) must come from the INSPIRE Themes Thesaurus in Geonetwork (choose one only)
+* Inspire theme (case-sensitive) must come from the [INSPIRE Themes Thesaurus](https://www.eionet.europa.eu/gemet/en/inspire-themes/) (can now be a comma-delimited list)
 * Update Frequency is case-sensitive, choose from the following codes:
   * continual
   * daily

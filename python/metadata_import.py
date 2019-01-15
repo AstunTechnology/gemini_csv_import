@@ -31,7 +31,7 @@ class TestMetadataImport(unittest.TestCase):
 
     def testMetadataImport(self):
         raw_data = []
-        numrows = 2
+        numrows = 59
         with open('../input/metadata.csv') as csvfile:
             reader = csv.reader(csvfile, dialect='excel')
             for columns in reader:
@@ -66,12 +66,12 @@ class TestMetadataImport(unittest.TestCase):
                         lineage = columns[26]
                         update_freq = columns[27]
                         inspire_keyword = columns[28]
-                        denomitator = columns[29]
+                        denominator = columns[29]
 
                 print "title: " + title
                 """
         # compare the number of rows in the csv (eg 1112) with the number of entries in the list
-        self.assertEqual(numrows, len(raw_data), 'Wrong number of rows')
+        #self.assertEqual(numrows, len(raw_data), 'Wrong number of rows')
 
         with open('dataset_empty.xml') as gemini:
             doc = minidom.parseString(gemini.read().encode( "utf-8" ))
@@ -133,19 +133,29 @@ class TestMetadataImport(unittest.TestCase):
                     newtopicElement.appendChild(newtopicNode)
                     topicElement.appendChild(newtopicElement)
 
-                # add inspire keyword
-                inspireKeyword = data[28]
-                inspireKeywordElement = identificationInfo[0].getElementsByTagName('gmd:keyword')[0]
-                inspireKeywordNode = record.createTextNode(inspireKeyword)
-                inspireKeywordElement.childNodes[1].appendChild(inspireKeywordNode)
-                print "Inspire Keyword: " + inspireKeyword
-
+                # add inspire keywords from comma-separated list
+                # strip spaces from beginning or end of each item
+                inspireKeywords = data[28].split(',')
+                for k in inspireKeywords:
+                    k.strip()
+                inspireKeywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[0]
+                for i, k in enumerate(inspireKeywords):
+                    newInspirekeywordElement = record.createElement('gmd:keyword')
+                    newInspirekeywordStringElement = record.createElement('gco:CharacterString')
+                    newInspirekeywordNode = record.createTextNode(k)
+                    newInspirekeywordStringElement.appendChild(newInspirekeywordNode)
+                    newInspirekeywordElement.appendChild(newInspirekeywordStringElement)
+                    inspireKeywordElement.appendChild(newInspirekeywordElement)
+                    print "Inspire Keyword: " + k
 
                 # add free text keywords from comma-separated list
-                keywords = data[10].split(', ')
+                # strip any spaces from beginning or end of each item
+                keywords = data[10].split(',')
+                for k in keywords:
+                    k.strip()
                 keywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[1]
                 for i, k in enumerate(keywords):
-                    print k
+                    print "Descriptive Keyword: " + k
                     newkeywordElement = record.createElement('gmd:keyword')
                     newkeywordStringElement = record.createElement('gco:CharacterString')
                     newkeywordNode = record.createTextNode(k)
