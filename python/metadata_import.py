@@ -135,16 +135,21 @@ class TestMetadataImport(unittest.TestCase):
 
                 # add inspire keywords from comma-separated list
                 # strip spaces from beginning or end of each item
+
                 inspireKeywords = data[28].split(',')
-                inspireKeywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[0]
-                for i, k in enumerate(inspireKeywords):
-                    newInspirekeywordElement = record.createElement('gmd:keyword')
-                    newInspirekeywordStringElement = record.createElement('gco:CharacterString')
-                    newInspirekeywordNode = record.createTextNode(k.strip())
-                    newInspirekeywordStringElement.appendChild(newInspirekeywordNode)
-                    newInspirekeywordElement.appendChild(newInspirekeywordStringElement)
-                    inspireKeywordElement.appendChild(newInspirekeywordElement)
-                    print "Inspire Keyword: " + k
+                if inspireKeywords:
+                    inspireKeywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[0]
+                    for i, k in enumerate(inspireKeywords):
+                        newInspirekeywordElement = record.createElement('gmd:keyword')
+                        newInspirekeywordStringElement = record.createElement('gco:CharacterString')
+                        newInspirekeywordNode = record.createTextNode(k.strip())
+                        newInspirekeywordStringElement.appendChild(newInspirekeywordNode)
+                        newInspirekeywordElement.appendChild(newInspirekeywordStringElement)
+                        inspireKeywordElement.insertBefore(newInspirekeywordElement,identificationInfo[0].getElementsByTagName('gmd:type')[0])
+                        print "Inspire Keyword: " + k
+                    else:
+                        # don't fail if there are no inspire keywords
+                        print "No INSPIRE Keywords"
 
                 # add free text keywords from comma-separated list
                 # strip any spaces from beginning or end of each item
@@ -157,7 +162,7 @@ class TestMetadataImport(unittest.TestCase):
                     newkeywordNode = record.createTextNode(k.strip())
                     newkeywordStringElement.appendChild(newkeywordNode)
                     newkeywordElement.appendChild(newkeywordStringElement)
-                    keywordElement.appendChild(newkeywordElement)
+                    keywordElement.insertBefore(newkeywordElement,identificationInfo[0].getElementsByTagName('gmd:type')[1])
 
                 # add lineage
                 lineage = data[26]
@@ -277,29 +282,29 @@ class TestMetadataImport(unittest.TestCase):
 
                 # # add extent (geographic description)
                 extent = data[19]
-                extentElement = identificationInfo[0].getElementsByTagName('gmd:code')[1]
+                extentElement = identificationInfo[0].getElementsByTagName('gmd:code')[2]
                 extentNode = record.createTextNode(extent)
                 extentElement.childNodes[1].appendChild(extentNode)
                 print "Extent: " + extent
 
                 # Usage Constraints
                 useLimitation = data[11]
-                useLimitationElement = identificationInfo[0].getElementsByTagName('gmd:useLimitation')[0]
-                useLimitationNode = record.createTextNode(useLimitation)
-                useLimitationElement.childNodes[1].appendChild(useLimitationNode)
-                print "Use Limitation: " + useLimitation
-
-                # Resource Constraints
                 licenceConstraint = data[12]
                 copyrightConstraint = data[13]
-                licenceconstraintsElement = identificationInfo[0].getElementsByTagName('gmd:otherConstraints')[0]
-                copyrightconstraintsElement = identificationInfo[0].getElementsByTagName('gmd:otherConstraints')[1]
-                licenceConstraintNode = record.createTextNode(licenceConstraint)
-                copyrightConstraintNode = record.createTextNode(copyrightConstraint)
-                licenceconstraintsElement.childNodes[1].appendChild(licenceConstraintNode)
-                copyrightconstraintsElement.childNodes[1].appendChild(copyrightConstraintNode)
-                print "License Constraint: " + licenceConstraint
-                print "Copyright Contraint: " + copyrightConstraint
+                constraintsElement = identificationInfo[0].getElementsByTagName('gmd:MD_Constraints')[0]
+                for i in (data[11:14]):
+                    print "Use Limitation: " + i
+                    newUseLimitationNode = record.createElement('gmd:useLimitation')
+                    newUseLimitationStringElement= record.createElement('gco:CharacterString')
+                    if i.lower().startswith('copyright'):
+                        newUseLimitationStringNode = record.createTextNode('(c) ' +i)
+                    else:
+                        newUseLimitationStringNode = record.createTextNode(i)
+                    newUseLimitationStringElement.appendChild(newUseLimitationStringNode)
+                    newUseLimitationNode.appendChild(newUseLimitationStringElement)
+                    constraintsElement.appendChild(newUseLimitationNode)
+
+
 
                 # Points of Contact
                 # TODO copy to top-level gmd:contact too
