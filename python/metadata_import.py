@@ -31,7 +31,7 @@ class TestMetadataImport(unittest.TestCase):
 
     def testMetadataImport(self):
         raw_data = []
-        numrows = 2
+        numrows = 59
         with open('../input/metadata.csv') as csvfile:
             reader = csv.reader(csvfile, dialect='excel')
             for columns in reader:
@@ -107,27 +107,27 @@ class TestMetadataImport(unittest.TestCase):
                 titleElement = identificationInfo[0].getElementsByTagName('gmd:title')[0]
                 titleNode = record.createTextNode(title)
                 titleElement.childNodes[1].appendChild(titleNode)
-                print ("Title:" + title)
+                print "Title:" + title
 
                 # add alternative title
                 altTitle = data[1]
                 altTitleElement = identificationInfo[0].getElementsByTagName('gmd:alternateTitle')[0]
                 altTitleNode = record.createTextNode(altTitle)
                 altTitleElement.childNodes[1].appendChild(altTitleNode)
-                print ("Alt Title:" + altTitle)
+                print "Alt Title:" + altTitle
 
                 # add abstract
                 abstract = data[4]
                 abstractElement = identificationInfo[0].getElementsByTagName('gmd:abstract')[0]
                 abstractNode = record.createTextNode(abstract)
                 abstractElement.childNodes[1].appendChild(abstractNode)
-                print ("Abstract" + abstract)
+                print "Abstract" + abstract
 
                 # add topics from comma-separated list
                 topics = data[14].split(',')
                 topicElement = identificationInfo[0].getElementsByTagName('gmd:topicCategory')[0]
                 for i, t in enumerate(topics):
-                    print ("Topic: " + t)
+                    print "Topic: " + t
                     newtopicElement = record.createElement('gmd:MD_TopicCategoryCode')
                     newtopicNode = record.createTextNode(t.strip())
                     newtopicElement.appendChild(newtopicNode)
@@ -146,17 +146,17 @@ class TestMetadataImport(unittest.TestCase):
                         newInspirekeywordStringElement.appendChild(newInspirekeywordNode)
                         newInspirekeywordElement.appendChild(newInspirekeywordStringElement)
                         inspireKeywordElement.insertBefore(newInspirekeywordElement,identificationInfo[0].getElementsByTagName('gmd:type')[0])
-                        print ("Inspire Keyword: " + k)
+                        print "Inspire Keyword: " + k
                     else:
                         # don't fail if there are no inspire keywords
-                        print ("No INSPIRE Keywords")
+                        print "No INSPIRE Keywords"
 
                 # add free text keywords from comma-separated list
                 # strip any spaces from beginning or end of each item
                 keywords = data[10].split(',')
                 keywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[1]
                 for i, k in enumerate(keywords):
-                    print ("Descriptive Keyword: " + k)
+                    print "Descriptive Keyword: " + k
                     newkeywordElement = record.createElement('gmd:keyword')
                     newkeywordStringElement = record.createElement('gco:CharacterString')
                     newkeywordNode = record.createTextNode(k.strip())
@@ -169,7 +169,7 @@ class TestMetadataImport(unittest.TestCase):
                 lineageElement = dataQualityInfo[0].getElementsByTagName('gmd:lineage')[0]
                 lineageNode = record.createTextNode(lineage)
                 lineageElement.childNodes[1].childNodes[1].childNodes[1].appendChild(lineageNode)
-                print ("lineage: " + lineage)
+                print "lineage: " + lineage
 
                 # add temporal extent
                 dates = data[20].split(',')
@@ -183,13 +183,13 @@ class TestMetadataImport(unittest.TestCase):
                         beginDate = dates[0]
                         endDate = dates[1]
                     else:
-                        print ("Temp extent dates in wrong format")
+                        print "Temp extent dates in wrong format"
 
-                    print ("Beginning date: " + beginDate)
-                    print ("End date: " + endDate)
+                    print "Beginning date: " + beginDate
+                    print "End date: " + endDate
                 else:
                     beginDate = dates[0]
-                    print ("Beginning date: " + beginDate)
+                    print "Beginning date: " + beginDate
                 temporalElement = identificationInfo[0].getElementsByTagName('gmd:temporalElement')[0]
                 beginDateNode = record.createTextNode(beginDate)
                 endDateNode = record.createTextNode(endDate)
@@ -204,8 +204,8 @@ class TestMetadataImport(unittest.TestCase):
                 # add distribution format, version, transfer options
                 distFormats = data[21].split(',')
                 versions = data[22].split(',')
-                print ("Formats: " + str(distFormats))
-                print ("Versions: " + str(versions))
+                print "Formats: " + str(distFormats)
+                print "Versions: " + str(versions)
                 nameElement = distributionInfo[0].getElementsByTagName('gmd:MD_Distribution')[0]
 
                 for i, k in zip(distFormats, versions):
@@ -233,7 +233,7 @@ class TestMetadataImport(unittest.TestCase):
                     # must be inserted before the transferoptions node
                     nameElement.insertBefore(newDistroFormatNode, distributionInfo[0].getElementsByTagName('gmd:transferOptions')[0])
 
-                    print ("Distribution format: " + i + " Version: " + k)
+                    print "Distribution format: " + i + " Version: " + k
 
 
                 # add transfer url
@@ -241,14 +241,14 @@ class TestMetadataImport(unittest.TestCase):
                 transferURLElement = distributionInfo[0].getElementsByTagName('gmd:URL')[0]
                 transferURLNode = record.createTextNode(transferURL)
                 transferURLElement.appendChild(transferURLNode)
-                print ("URL: " + transferURL)
+                print "URL: " + transferURL
 
                 # add transfer protocol
                 transferProtocol = data[23]
                 transferProtocolElement = distributionInfo[0].getElementsByTagName('gmd:protocol')[0]
                 transferProtocolNode = record.createTextNode(transferProtocol)
                 transferProtocolElement.childNodes[1].appendChild(transferProtocolNode)
-                print ("Protocol: " + transferProtocol)
+                print "Protocol: " + transferProtocol
 
                 # add data quality and repeat it in the level description
                 dataQuality = data[25]
@@ -259,7 +259,7 @@ class TestMetadataImport(unittest.TestCase):
                 dataQualityElement.setAttribute("codeListValue", dataQuality)
                 dataQualityElement.appendChild(dataQualityNode)
                 dataQualityDescElement.childNodes[1].appendChild(dataQualityDescNode)
-                print ("dataquality: " + dataQuality)
+                print "dataquality: " + dataQuality
 
                 # add geographic extents - no need to transform as it's in wgs84
                 bng = pyproj.Proj(init='epsg:27700')
@@ -270,7 +270,7 @@ class TestMetadataImport(unittest.TestCase):
                     eastNode = record.createTextNode(east)
                     northNode = record.createTextNode(north)
                     southNode = record.createTextNode(south)
-                    print ("BBox: %s,%s,%s,%s" % (west,east,south,north))
+                    print "BBox: %s,%s,%s,%s" % (west,east,south,north)
                     geoBoundingBoxElement = identificationInfo[0].getElementsByTagName('gmd:EX_GeographicBoundingBox')[0]
                     geoBoundingBoxElement.childNodes[3].childNodes[1].appendChild(westNode)
                     geoBoundingBoxElement.childNodes[5].childNodes[1].appendChild(eastNode)
@@ -285,7 +285,7 @@ class TestMetadataImport(unittest.TestCase):
                 extentElement = identificationInfo[0].getElementsByTagName('gmd:code')[2]
                 extentNode = record.createTextNode(extent)
                 extentElement.childNodes[1].appendChild(extentNode)
-                print ("Extent: " + extent)
+                print "Extent: " + extent
 
                 # Usage Constraints
                 useLimitation = data[11]
@@ -293,7 +293,7 @@ class TestMetadataImport(unittest.TestCase):
                 copyrightConstraint = data[13]
                 constraintsElement = identificationInfo[0].getElementsByTagName('gmd:MD_Constraints')[0]
                 for i in (data[11:14]):
-                    print ("Use Limitation: " + i)
+                    print "Use Limitation: " + i
                     newUseLimitationNode = record.createElement('gmd:useLimitation')
                     newUseLimitationStringElement= record.createElement('gco:CharacterString')
                     if i.lower().startswith('copyright'):
@@ -349,11 +349,11 @@ class TestMetadataImport(unittest.TestCase):
                 metadatacontactOrgElement.childNodes[1].appendChild(metadatacontactOrgNode)
                 metadatacontactPosElement.childNodes[1].appendChild(metadatacontactPositionNode)
                 metadatacontactAddElement.childNodes[1].appendChild(metadatacontactAddressNode)
-                print ("Name: " + contactName)
-                print ("Email: " + contactEmail)
-                print ("Address: " + contactAddress)
-                print ("Organisation: " + contactOrg)
-                print ("Position: " + contactPosition)
+                print "Name: " + contactName
+                print "Email: " + contactEmail
+                print "Address: " + contactAddress
+                print "Organisation: " + contactOrg
+                print "Position: " + contactPosition
 
 
                 # add dataset reference dates
@@ -362,22 +362,22 @@ class TestMetadataImport(unittest.TestCase):
                 elif '-' in data[2]:
                     creationDate = data[2]
                 else:
-                    print ("creationdate in wrong format")
+                    print "creationdate in wrong format"
                 creationDateElement = identificationInfo[0].getElementsByTagName('gmd:date')[0]
                 creationDateNode = record.createTextNode(creationDate)
                 creationDateElement.childNodes[1].childNodes[1].childNodes[1].appendChild(creationDateNode)
-                print ("Creation date:" + creationDate)
+                print "Creation date:" + creationDate
 
                 if '/' in data[3]:
                     revisionDate = arrow.get(data[3],'DD/MM/YYYY').format('YYYY-MM-DD')
                 elif '-' in data[3]:
                     revisionDate = data[3]
                 else:
-                    print ("revisiondate in wrong format")
+                    print "revisiondate in wrong format"
                 revisionDateElement = identificationInfo[0].getElementsByTagName('gmd:date')[2]
                 revisionDateNode = record.createTextNode(revisionDate)
                 revisionDateElement.childNodes[1].childNodes[1].childNodes[1].appendChild(revisionDateNode)
-                print ("Revision Date: " + revisionDate)
+                print "Revision Date: " + revisionDate
 
                 # update frequency
                 updateFrequency = data[27]
@@ -385,22 +385,21 @@ class TestMetadataImport(unittest.TestCase):
                 updateFrequencyNode = record.createTextNode(updateFrequency)
                 updateFrequencyElement.setAttribute("codeListValue", updateFrequency)
                 updateFrequencyElement.appendChild(updateFrequencyNode)
-                print ("Update Frequency: " + updateFrequency)
+                print "Update Frequency: " + updateFrequency
 
                 # denominator
                 denominator = data[29]
                 denominatorElement=identificationInfo[0].getElementsByTagName('gmd:denominator')[0]
                 denominatorNode = record.createTextNode(denominator)
                 denominatorElement.childNodes[1].appendChild(denominatorNode)
-                print ("Scale: " + denominator)
+                print "Scale: " + denominator
 
 
 
                 # write out the gemini record
                 filename = '../output/%s.xml' % fileId
-                with open(filename,'wb') as test_xml:
+                with open(filename,'w') as test_xml:
                     test_xml.write(record.toprettyxml(newl="", encoding="utf-8"))
-                    #print ("test")
             except:
                 e = sys.exc_info()[1]
                 logging.debug("Import failed for entry %s" % data[0])
@@ -416,8 +415,8 @@ class TestMetadataImport(unittest.TestCase):
 
         md = MD_Metadata(etree.parse('gemini-template.xml'))
         md.identification.topiccategory = ['farming','environment']
-        print (md.identification.topiccategory)
-        outfile = open('mdtest.xml','wb')
+        print md.identification.topiccategory
+        outfile = open('mdtest.xml','w')
         # crap, can't update the model and write back out - this is badly needed!!
         outfile.write(md.xml)
 
