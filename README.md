@@ -12,7 +12,7 @@ The default branch (2.2) is compliant with Gemini 2.2. A branch for Gemini 2.3 w
 * See the sample csv file for the correct layout- alternatively change the column mappings in metadata_import.py to match your layout
 * Place your csv file in the input folder
 * Change to the python directory
-* Count the total number of rows in your CSV including the header row and edit the numrows line (28) in metadata_import_.py to match
+* Count the total number of rows in your CSV including the header row and edit the numrows line (34) in metadata_import_.py to match
 * Run python metadata_import.py
 * Your xml files will miraculously appear in the output folder
 * Check error.log in the python folder for details of any records that failed- these will be listed by title with the details of the error
