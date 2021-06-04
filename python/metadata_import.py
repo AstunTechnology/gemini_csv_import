@@ -75,6 +75,7 @@ class TestMetadataImport(unittest.TestCase):
 
         with open('dataset_empty.xml') as gemini:
             doc = minidom.parseString(gemini.read().encode( "utf-8" ))
+            
 
         # create metadata from the first csv entry to begin with
         # data = raw_data[1]
@@ -163,6 +164,7 @@ class TestMetadataImport(unittest.TestCase):
                     newkeywordStringElement.appendChild(newkeywordNode)
                     newkeywordElement.appendChild(newkeywordStringElement)
                     keywordElement.insertBefore(newkeywordElement,identificationInfo[0].getElementsByTagName('gmd:type')[1])
+                    
 
                 # add lineage
                 lineage = data[26]
@@ -170,6 +172,7 @@ class TestMetadataImport(unittest.TestCase):
                 lineageNode = record.createTextNode(lineage)
                 lineageElement.childNodes[1].childNodes[1].childNodes[1].appendChild(lineageNode)
                 print ("lineage: " + lineage)
+                
 
                 # add temporal extent
                 dates = data[20].split(',')
@@ -195,7 +198,7 @@ class TestMetadataImport(unittest.TestCase):
                 endDateNode = record.createTextNode(endDate)
                 temporalElement.childNodes[1].childNodes[1].childNodes[1].childNodes[1].appendChild(beginDateNode)
                 temporalElement.childNodes[1].childNodes[1].childNodes[1].childNodes[3].appendChild(endDateNode)
-
+                
                 # update gml:TimePeriod id attribute
                 gmlId = '_' + str(uuid.uuid4())
                 timePeriodElement = identificationInfo[0].getElementsByTagName('gml:TimePeriod')[0]
@@ -234,7 +237,7 @@ class TestMetadataImport(unittest.TestCase):
                     nameElement.insertBefore(newDistroFormatNode, distributionInfo[0].getElementsByTagName('gmd:transferOptions')[0])
 
                     print ("Distribution format: " + i + " Version: " + k)
-
+                    
 
                 # add transfer url
                 transferURL = data[24]
@@ -242,25 +245,28 @@ class TestMetadataImport(unittest.TestCase):
                 transferURLNode = record.createTextNode(transferURL)
                 transferURLElement.appendChild(transferURLNode)
                 print ("URL: " + transferURL)
-
+    
                 # add transfer protocol
                 transferProtocol = data[23]
                 transferProtocolElement = distributionInfo[0].getElementsByTagName('gmd:protocol')[0]
                 transferProtocolNode = record.createTextNode(transferProtocol)
                 transferProtocolElement.childNodes[1].appendChild(transferProtocolNode)
                 print ("Protocol: " + transferProtocol)
+                #print ("break")
+                
 
                 # add data quality and repeat it in the level description
                 dataQuality = data[25]
                 dataQualityElement = dataQualityInfo[0].getElementsByTagName('gmd:MD_ScopeCode')[0]
-                dataQualityDescElement = dataQualityInfo[0].getElementsByTagName('gmd:other')[0]
+                #dataQualityDescElement = dataQualityInfo[0].getElementsByTagName('gmd:other')[0]
                 dataQualityNode = record.createTextNode(dataQuality)
                 dataQualityDescNode = record.createTextNode(dataQuality)
                 dataQualityElement.setAttribute("codeListValue", dataQuality)
                 dataQualityElement.appendChild(dataQualityNode)
-                dataQualityDescElement.childNodes[1].appendChild(dataQualityDescNode)
+                #dataQualityDescElement.childNodes[1].appendChild(dataQualityDescNode)
                 print ("dataquality: " + dataQuality)
-
+                 
+            
                 # add geographic extents - no need to transform as it's in wgs84
                 bng = pyproj.Proj(init='epsg:27700')
                 wgs84 = pyproj.Proj(init='epsg:4326')
@@ -292,6 +298,7 @@ class TestMetadataImport(unittest.TestCase):
                 licenceConstraint = data[12]
                 copyrightConstraint = data[13]
                 constraintsElement = identificationInfo[0].getElementsByTagName('gmd:MD_Constraints')[0]
+                print ("break")
                 for i in (data[11:14]):
                     print ("Use Limitation: " + i)
                     newUseLimitationNode = record.createElement('gmd:useLimitation')
@@ -303,6 +310,7 @@ class TestMetadataImport(unittest.TestCase):
                     newUseLimitationStringElement.appendChild(newUseLimitationStringNode)
                     newUseLimitationNode.appendChild(newUseLimitationStringElement)
                     constraintsElement.appendChild(newUseLimitationNode)
+                    
 
 
 
