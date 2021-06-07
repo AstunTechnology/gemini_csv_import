@@ -52,13 +52,13 @@
     </gmd:CI_ResponsibleParty>
   </gmd:contact>
   <gmd:dateStamp>
-      <gco:Date />
+       <gco:DateTime>2021-06-03T12:00:00</gco:DateTime>
   </gmd:dateStamp>
   <gmd:metadataStandardName>
       <gco:CharacterString>UK GEMINI</gco:CharacterString>
   </gmd:metadataStandardName>
   <gmd:metadataStandardVersion>
-      <gco:CharacterString>2.2</gco:CharacterString>
+      <gco:CharacterString>2.3</gco:CharacterString>
   </gmd:metadataStandardVersion>
   <gmd:referenceSystemInfo >
       <gmd:MD_ReferenceSystem>
