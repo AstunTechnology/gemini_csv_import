@@ -1,0 +1,483 @@
+# coding=utf-8
+
+'''
+@author: Brian O'Hare
+'''
+import os
+import sys
+import unittest
+from unittest import skip
+import csv
+import uuid
+import xml
+import xml.dom.minidom as minidom
+import owslib
+from owslib.iso import *
+import pyproj
+from pyproj import CRS
+from decimal import *
+import logging
+import arrow
+
+class TestMetadataImport(unittest.TestCase):
+
+    def setUp(self):
+        # remove existing output files
+        for file in os.listdir('../output/'):
+            os.remove('../output/' + file)
+
+        logging.basicConfig(filename='error.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    def testMetadataImport(self):
+        raw_data = []
+        numrows = rows.split("=")[1]
+        print (numrows)
+        with open('../input/metadata.csv') as csvfile:
+            reader = csv.reader(csvfile, dialect='excel')
+            for columns in reader:
+                raw_data.append(columns)
+                """
+                        title = columns[0]
+                        alt_title = columns[1]
+                        creation_date = columns[2]
+                        revsion_date = columns[3]
+                        abstract = columns[4]
+                        pointofcontact_name = columns[5]
+                        pointofcontact_email = columns[6]
+                        pointofcontact_address = columns[7]
+                        pointofcontact_org = columns[8]
+                        pointofcontact_position = columns[9]
+                        keyword = columns[10]
+                        use_limitation = columns[11]
+                        licence_constraints = columns[12]
+                        copyright_constraints = columns[13]
+                        topic_category = columns[14]
+                        west_bc = columns[15]
+                        east_bc = columns[16]
+                        north_bc = columns[17]
+                        south_bc = columns[18]
+                        extent = columns[19]
+                        temp_extent = columns[20]
+                        data_format = columns[21]
+                        data_version = columns [22]
+                        transfer_protocol = columns[23]
+                        transfer_url = columns[24]
+                        data_quality = columns[25]
+                        lineage = columns[26]
+                        update_freq = columns[27]
+                        inspire_keyword = columns[28]
+                        denominator = columns[29]
+
+                print "title: " + title
+                """
+        # compare the number of rows in the csv (eg 1112) with the number of entries in the list
+        #self.assertEqual(numrows, len(raw_data), 'Wrong number of rows')
+
+        with open('dataset_empty.xml') as gemini:
+            doc = minidom.parseString(gemini.read().encode( "utf-8" ))
+            
+
+        # create metadata from the first csv entry to begin with
+        # data = raw_data[1]
+        for data in raw_data[1:]:
+            try:
+                # create a new record from the template
+                record = doc.cloneNode(doc)
+
+                # pull out the gemini top-level elements
+                fileIdentifier = record.getElementsByTagName('gmd:fileIdentifier')
+                language = record.getElementsByTagName('gmd:language')[0]
+                hierarchyLevel = record.getElementsByTagName('gmd:hierarchyLevel')
+                contact = record.getElementsByTagName('gmd:contact')
+                dateStamp = record.getElementsByTagName('gmd:dateStamp')
+                referenceSystemInfo = record.getElementsByTagName('gmd:referenceSystemInfo')
+                identificationInfo = record.getElementsByTagName('gmd:identificationInfo')
+                distributionInfo = record.getElementsByTagName('gmd:distributionInfo')
+                dataQualityInfo = record.getElementsByTagName('gmd:dataQualityInfo')
+                metadataMaintenance = record.getElementsByTagName('gmd:metadataMaintenance')
+
+                # generate and add the fileId
+                fileId = str(uuid.uuid4())
+                fileIdentifier[0].childNodes[1].appendChild(record.createTextNode(fileId))
+                identifierElement = identificationInfo[0].getElementsByTagName('gmd:code')[0]
+                identifierNode = record.createTextNode(fileId)
+                identifierElement.childNodes[1].appendChild(identifierNode)
+
+                # add the title
+                title = data[0]
+                titleElement = identificationInfo[0].getElementsByTagName('gmd:title')[0]
+                titleNode = record.createTextNode(title)
+                titleElement.childNodes[1].appendChild(titleNode)
+                print ("Title:" + title)
+
+                # add alternative title
+                altTitle = data[1]
+                altTitleElement = identificationInfo[0].getElementsByTagName('gmd:alternateTitle')[0]
+                altTitleNode = record.createTextNode(altTitle)
+                altTitleElement.childNodes[1].appendChild(altTitleNode)
+                print ("Alt Title:" + altTitle)
+
+                # add abstract
+                abstract = data[6]
+                abstractElement = identificationInfo[0].getElementsByTagName('gmd:abstract')[0]
+                abstractNode = record.createTextNode(abstract)
+                abstractElement.childNodes[1].appendChild(abstractNode)
+                print ("Abstract: " + abstract)
+
+                # add topics from comma-separated list
+                topics = data[18].split(',')
+                topicElement = identificationInfo[0].getElementsByTagName('gmd:topicCategory')[0]
+                for i, t in enumerate(topics):
+                    print ("Topic: " + t)
+                    newtopicElement = record.createElement('gmd:MD_TopicCategoryCode')
+                    newtopicNode = record.createTextNode(t.strip())
+                    newtopicElement.appendChild(newtopicNode)
+                    topicElement.appendChild(newtopicElement)
+
+                # add inspire keywords from comma-separated list
+                # strip spaces from beginning or end of each item
+
+                inspireKeywords = data[23].split(',')
+                if inspireKeywords:
+                    inspireKeywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[0]
+                    for i, k in enumerate(inspireKeywords):
+                        newInspirekeywordElement = record.createElement('gmd:keyword')
+                        newInspirekeywordStringElement = record.createElement('gco:CharacterString')
+                        newInspirekeywordNode = record.createTextNode(k.strip())
+                        newInspirekeywordStringElement.appendChild(newInspirekeywordNode)
+                        newInspirekeywordElement.appendChild(newInspirekeywordStringElement)
+                        inspireKeywordElement.insertBefore(newInspirekeywordElement,identificationInfo[0].getElementsByTagName('gmd:type')[0])
+                        print ("Inspire Keyword: " + k)
+                    else:
+                        # don't fail if there are no inspire keywords
+                        print ("No INSPIRE Keywords")
+
+                # add free text keywords from comma-separated list
+                # strip any spaces from beginning or end of each item
+                keywords = data[7].split(',')
+                keywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[1]
+                for i, k in enumerate(keywords):
+                    print ("Descriptive Keyword: " + k)
+                    newkeywordElement = record.createElement('gmd:keyword')
+                    newkeywordStringElement = record.createElement('gco:CharacterString')
+                    newkeywordNode = record.createTextNode(k.strip())
+                    newkeywordStringElement.appendChild(newkeywordNode)
+                    newkeywordElement.appendChild(newkeywordStringElement)
+                    keywordElement.insertBefore(newkeywordElement,identificationInfo[0].getElementsByTagName('gmd:type')[1])
+                    
+
+                # add lineage
+                lineage = data[47]
+                lineageElement = dataQualityInfo[0].getElementsByTagName('gmd:lineage')[0]
+                lineageNode = record.createTextNode(lineage)
+                lineageElement.childNodes[1].childNodes[1].childNodes[1].appendChild(lineageNode)
+                print ("lineage: " + lineage)
+                
+
+                # add temporal extent
+                dates = data[15].split(',')
+                beginDate, endDate = '', ''
+                if len(dates) == 2:
+                    if '/' in data[15]:
+
+                        beginDate = arrow.get(dates[0],'DD/MM/YYYY').format('YYYY-MM-DD')
+                        endDate = arrow.get(dates[1],'DD/MM/YYYY').format('YYYY-MM-DD')
+                    elif '-' in data[15]:
+                        beginDate = dates[0]
+                        endDate = dates[1]
+                    else:
+                        print ("Temp extent dates in wrong format")
+
+                    print ("Beginning date: " + beginDate)
+                    print ("End date: " + endDate)
+                else:
+                    beginDate = dates[0]
+                    print ("Beginning date: " + beginDate)
+                temporalElement = identificationInfo[0].getElementsByTagName('gmd:temporalElement')[0]
+                beginDateNode = record.createTextNode(beginDate)
+                endDateNode = record.createTextNode(endDate)
+                temporalElement.childNodes[1].childNodes[1].childNodes[1].childNodes[1].appendChild(beginDateNode)
+                temporalElement.childNodes[1].childNodes[1].childNodes[1].childNodes[3].appendChild(endDateNode)
+                
+                # update gml:TimePeriod id attribute
+                gmlId = '_' + str(uuid.uuid4())
+                timePeriodElement = identificationInfo[0].getElementsByTagName('gml:TimePeriod')[0]
+                timePeriodElement.setAttributeNS('http://www.opengis.net/gml/3.2', 'gml:id', gmlId)
+
+                # add distribution format, version, transfer options
+                distFormats = data[14].split(',')
+                versions = data[47].split(',')
+                print ("Formats: " + str(distFormats))
+                print ("Versions: " + str(versions))
+                nameElement = distributionInfo[0].getElementsByTagName('gmd:MD_Distribution')[0]
+
+                for i, k in zip(distFormats, versions):
+                    newDistroFormatNode = record.createElement('gmd:distributionFormat')
+                    newMDFormatNode = record.createElement('gmd:MD_Format')
+
+                    newDistFormatElement = record.createElement('gmd:name')
+                    newDistFormatStringElement = record.createElement('gco:CharacterString')
+                    newDistFormatNode=record.createTextNode(i)
+                    newDistFormatStringElement.appendChild(newDistFormatNode)
+                    newDistFormatElement.appendChild(newDistFormatStringElement)
+
+                    newMDFormatNode.appendChild(newDistFormatElement)
+                    newDistroFormatNode.appendChild(newMDFormatNode)
+
+                    newVersionElement = record.createElement('gmd:version')
+                    newVersionStringElement = record.createElement('gco:CharacterString')
+                    newVersionNode=record.createTextNode(k)
+                    newVersionStringElement.appendChild(newVersionNode)
+                    newVersionElement.appendChild(newVersionStringElement)
+
+                    newMDFormatNode.appendChild(newVersionElement)
+                    newDistroFormatNode.appendChild(newMDFormatNode)
+
+                    # must be inserted before the transferoptions node
+                    nameElement.insertBefore(newDistroFormatNode, distributionInfo[0].getElementsByTagName('gmd:transferOptions')[0])
+
+                    print ("Distribution format: " + i + " Version: " + k)
+                    
+
+                # add transfer url
+                transferURL_1 = data[33]
+                transferURL_2 = data[38]
+                transferURL_3 = data[34]
+                transferURLElement = distributionInfo[0].getElementsByTagName('gmd:URL')[0]
+                transferURLNode = record.createTextNode(transferURL_1 + transferURL_2 + transferURL_3)
+                transferURLElement.appendChild(transferURLNode)
+                print ("URL: " + transferURL_1 + transferURL_2 + transferURL_3)
+    
+                # add transfer protocol
+                transferProtocol = data[48]
+                transferProtocolElement = distributionInfo[0].getElementsByTagName('gmd:protocol')[0]
+                transferProtocolNode = record.createTextNode(transferProtocol)
+                transferProtocolElement.childNodes[1].appendChild(transferProtocolNode)
+                print ("Protocol: " + transferProtocol)
+                #print ("break")
+
+                # add file url
+                fileURL = data[36]
+                fileURLElement = distributionInfo[0].getElementsByTagName('gmd:URL')[1]
+                fileURLNode = record.createTextNode(fileURL)
+                fileURLElement.appendChild(fileURLNode)
+                #fileURLElement.childNodes[1].appendChild(fileURLNode)
+                print ("File URL: " + fileURL)
+
+                # add file protocol
+                fileProtocol = data[56]
+                fileProtocolElement = distributionInfo[0].getElementsByTagName('gmd:protocol')[1]
+                fileProtocolNode = record.createTextNode(fileProtocol)
+                fileProtocolElement.childNodes[1].appendChild(fileProtocolNode)
+                print ("File Protocol: " + fileProtocol)
+                #print ("break")
+
+                # add contact url
+                contactURL = data[3]
+                contactURLElement = distributionInfo[0].getElementsByTagName('gmd:URL')[2]
+                contactURLNode = record.createTextNode(contactURL)
+                contactURLElement.appendChild(contactURLNode)
+                #contactURLElement.childNodes[1].appendChild(contactURLNode)
+                print ("Contact URL: " + contactURL)
+
+                # add contact protocol
+                contactProtocol = data[57]
+                contactProtocolElement = distributionInfo[0].getElementsByTagName('gmd:protocol')[2]
+                contactProtocolNode = record.createTextNode(contactProtocol)
+                contactProtocolElement.childNodes[1].appendChild(contactProtocolNode)
+                print ("Contact Protocol: " + contactProtocol)
+                #print ("break")
+
+
+                # add data quality and repeat it in the level description
+                dataQuality = data[49]
+                dataQualityElement = dataQualityInfo[0].getElementsByTagName('gmd:MD_ScopeCode')[0]
+                #dataQualityDescElement = dataQualityInfo[0].getElementsByTagName('gmd:other')[0]
+                dataQualityNode = record.createTextNode(dataQuality)
+                dataQualityDescNode = record.createTextNode(dataQuality)
+                dataQualityElement.setAttribute("codeListValue", dataQuality)
+                dataQualityElement.appendChild(dataQualityNode)
+                #dataQualityDescElement.childNodes[1].appendChild(dataQualityDescNode)
+                print ("dataquality: " + dataQuality)
+                 
+            
+                # add geographic extents - no need to transform if it's in wgs84
+                # https://pyproj4.github.io/pyproj/stable/gotchas.html#axis-order-changes-in-proj-6
+                bng = CRS("OSGB")
+                wgs84 = CRS("WGS84")
+                proj = pyproj.Transformer.from_crs(27700, 4326, always_xy=True)
+                #west_bng, east_bng, north_bng, south_bng  = (data[27], data[26], data[25], data[24])
+                x1, y1 = proj.transform(data[27],data[24])
+                x2, y2 = proj.transform(data[26], data[25])
+                west, south, east, north = str(x1), str(y1), str(x2), str(y2)
+                try:
+                    #west, east, north, south = data[27], data[26], data[25], data[24]
+                    westNode = record.createTextNode(west)
+                    eastNode = record.createTextNode(east)
+                    northNode = record.createTextNode(north)
+                    southNode = record.createTextNode(south)
+                    print ("BBox: %s,%s,%s,%s" % (west,east,south,north))
+                    geoBoundingBoxElement = identificationInfo[0].getElementsByTagName('gmd:EX_GeographicBoundingBox')[0]
+                    geoBoundingBoxElement.childNodes[3].childNodes[1].appendChild(westNode)
+                    geoBoundingBoxElement.childNodes[5].childNodes[1].appendChild(eastNode)
+                    geoBoundingBoxElement.childNodes[7].childNodes[1].appendChild(southNode)
+                    geoBoundingBoxElement.childNodes[9].childNodes[1].appendChild(northNode)
+                except:
+                    # create a metadata record even if there's no extent given
+                    pass
+
+                # # add extent (geographic description)
+                extent = data[21]
+                extentElement = identificationInfo[0].getElementsByTagName('gmd:code')[2]
+                extentNode = record.createTextNode(extent)
+                extentElement.childNodes[1].appendChild(extentNode)
+                print ("Extent: " + extent)
+
+                # Usage Constraints
+                copyrightConstraint = data[10]
+                useLimitation = data[12]
+                constraintsElement = identificationInfo[0].getElementsByTagName('gmd:MD_Constraints')[0]
+                uselist = [data[10],data[12]]
+                for i in (uselist[0:2]):
+                    print ("Use Limitation: " + i)
+                    newUseLimitationNode = record.createElement('gmd:useLimitation')
+                    newUseLimitationStringElement= record.createElement('gco:CharacterString')
+                    if i.lower().startswith('copyright'):
+                        newUseLimitationStringNode = record.createTextNode('(c) ' +i)
+                    else:
+                        newUseLimitationStringNode = record.createTextNode(i)
+                    newUseLimitationStringElement.appendChild(newUseLimitationStringNode)
+                    newUseLimitationNode.appendChild(newUseLimitationStringElement)
+                    constraintsElement.appendChild(newUseLimitationNode)
+                    
+
+
+
+                # Points of Contact
+                # TODO copy to top-level gmd:contact too
+                contactName = data[4]
+                metaDataContactName = data[51]
+                contactEmail = data[52]
+                contactAddress = data[53]
+                contactOrg = data[54]
+                contactPosition = data[55]
+
+                ## Identification Info Point of Contact
+                contactNameElement = identificationInfo[0].getElementsByTagName('gmd:individualName')[0]
+                contactOrgElement = identificationInfo[0].getElementsByTagName('gmd:organisationName')[0]
+                contactPosElement = identificationInfo[0].getElementsByTagName('gmd:positionName')[0]
+                contactAddElement = identificationInfo[0].getElementsByTagName('gmd:deliveryPoint')[0]
+                contactEmailElement = identificationInfo[0].getElementsByTagName('gmd:electronicMailAddress')[0]
+
+                contactNameNode = record.createTextNode(contactName)
+                #contactOrgNode = record.createTextNode(contactOrg)
+                #contactPositionNode = record.createTextNode(contactPosition)
+                #contactAddressNode = record.createTextNode(contactAddress)
+                #contactEmailNode = record.createTextNode(contactEmail)
+                contactNameElement.childNodes[1].appendChild(contactNameNode)
+                #contactEmailElement.childNodes[1].appendChild(contactEmailNode)
+                #contactOrgElement.childNodes[1].appendChild(contactOrgNode)
+                #contactPosElement.childNodes[1].appendChild(contactPositionNode)
+                #contactAddElement.childNodes[1].appendChild(contactAddressNode)
+
+                ## Metadata Point of Contact
+                metadatacontactNameElement = contact[0].getElementsByTagName('gmd:individualName')[0]
+                metadatacontactOrgElement = contact[0].getElementsByTagName('gmd:organisationName')[0]
+                metadatacontactPosElement = contact[0].getElementsByTagName('gmd:positionName')[0]
+                metadatacontactAddElement = contact[0].getElementsByTagName('gmd:deliveryPoint')[0]
+                metadatacontactEmailElement = contact[0].getElementsByTagName('gmd:electronicMailAddress')[0]
+
+                metadatacontactNameNode = record.createTextNode(metaDataContactName)
+                metadatacontactOrgNode = record.createTextNode(contactOrg)
+                metadatacontactPositionNode = record.createTextNode(contactPosition)
+                metadatacontactAddressNode = record.createTextNode(contactAddress)
+                metadatacontactEmailNode = record.createTextNode(contactEmail)
+                metadatacontactNameElement.childNodes[1].appendChild(metadatacontactNameNode)
+                metadatacontactEmailElement.childNodes[1].appendChild(metadatacontactEmailNode)
+                metadatacontactOrgElement.childNodes[1].appendChild(metadatacontactOrgNode)
+                metadatacontactPosElement.childNodes[1].appendChild(metadatacontactPositionNode)
+                metadatacontactAddElement.childNodes[1].appendChild(metadatacontactAddressNode)
+                
+                print ("Name: " + contactName)
+                print ("POC name " + metaDataContactName)
+                print ("Email: " + contactEmail)
+                print ("Address: " + contactAddress)
+                print ("Organisation: " + contactOrg)
+                print ("Position: " + contactPosition)
+
+
+                # add dataset reference dates
+                creationDate = data[15]
+                if '/' in data[15]:
+                    creationDate = arrow.get(data[15],'DD/MM/YYYY').format('YYYY-MM-DD')
+                elif '-' in data[15]:
+                    creationDate = data[15]
+                else:
+                    print ("creationdate in wrong format")
+                creationDateElement = identificationInfo[0].getElementsByTagName('gmd:date')[0]
+                creationDateNode = record.createTextNode(creationDate)
+                creationDateElement.childNodes[1].childNodes[1].childNodes[1].appendChild(creationDateNode)
+                print ("Creation date:" + creationDate)
+
+                if '/' in data[50]:
+                    revisionDate = arrow.get(data[50],'DD/MM/YYYY').format('YYYY-MM-DD')
+                elif '-' in data[50]:
+                    revisionDate = data[50]
+                else:
+                    print ("revisiondate in wrong format")
+                revisionDateElement = identificationInfo[0].getElementsByTagName('gmd:date')[2]
+                revisionDateNode = record.createTextNode(revisionDate)
+                revisionDateElement.childNodes[1].childNodes[1].childNodes[1].appendChild(revisionDateNode)
+                print ("Revision Date: " + revisionDate)
+
+                # update frequency
+                updateFrequency = data[8]
+                updateFrequencyElement = identificationInfo[0].getElementsByTagName('gmd:MD_MaintenanceFrequencyCode')[0]
+                updateFrequencyNode = record.createTextNode(updateFrequency)
+                updateFrequencyElement.setAttribute("codeListValue", updateFrequency)
+                updateFrequencyElement.appendChild(updateFrequencyNode)
+                print ("Update Frequency: " + updateFrequency)
+
+                # denominator
+                denominator = data[11]
+                denominatorElement=identificationInfo[0].getElementsByTagName('gmd:denominator')[0]
+                denominatorNode = record.createTextNode(denominator)
+                denominatorElement.childNodes[1].appendChild(denominatorNode)
+                print ("Scale: " + denominator)
+
+                
+
+
+
+                # write out the gemini record
+                filename = '../output/%s.xml' % fileId
+                with open(filename,'wb') as test_xml:
+                    test_xml.write(record.toprettyxml(newl="", encoding="utf-8"))
+                    #print ("test")
+            except:
+                e = sys.exc_info()[1]
+                logging.debug("Import failed for entry %s" % data[0])
+                logging.debug("Specific error: %s" % e)
+
+    @skip('')
+    def testOWSMetadataImport(self):
+        raw_data = []
+        with open('../input/metadata.csv') as csvfile:
+            reader = csv.reader(csvfile, dialect='excel')
+            for columns in reader:
+                raw_data.append(columns)
+
+        md = MD_Metadata(etree.parse('gemini-template.xml'))
+        md.identification.topiccategory = ['farming','environment']
+        print (md.identification.topiccategory)
+        outfile = open('mdtest.xml','wb')
+        # crap, can't update the model and write back out - this is badly needed!!
+        outfile.write(md.xml)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        sys.exit("Please supply the number of rows in the csv after the python file e.g. rows=10")
+    rows = sys.argv[1]
+    del sys.argv[1:]
+    unittest.main()
