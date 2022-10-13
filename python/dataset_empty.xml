@@ -309,18 +309,7 @@
    </gmd:identificationInfo>
   <gmd:distributionInfo >
       <gmd:MD_Distribution>
-         <gmd:distributionFormat>
-            <gmd:MD_Format>
-               <gmd:name gco:nilReason="missing">
-                  <gco:CharacterString/>
-               </gmd:name>
-               <gmd:version gco:nilReason="unknown"/>
-               <gmd:specification gco:nilReason="missing">
-                  <gco:CharacterString/>
-               </gmd:specification>
-            </gmd:MD_Format>
-         </gmd:distributionFormat>
-         <gmd:transferOptions>
+                  <gmd:transferOptions>
             <gmd:MD_DigitalTransferOptions>
                <gmd:onLine>
                   <gmd:CI_OnlineResource>
@@ -330,6 +319,12 @@
                      <gmd:protocol>
                         <gco:CharacterString></gco:CharacterString>
                      </gmd:protocol>
+                     <gmd:name>
+                        <gco:CharacterString>Layer Name</gco:CharacterString>
+                     </gmd:name>
+                     <gmd:description>
+                        <gco:CharacterString>Download Service URL</gco:CharacterString>
+                     </gmd:description>
                      <gmd:function>
                         <gmd:CI_OnLineFunctionCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_OnLineFunctionCode"
                                                    codeListValue="information"/>
