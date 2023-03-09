@@ -6,8 +6,8 @@ A python script for exporting gemini compliant metadata from a csv file to indiv
 
 ### How do I get set up? ###
 
-* Create a python 3 virtual environment in the root directory
-* Activate the virtual environment
+* Create a python 3 virtual environment in the root directory `python3 -m venv .`
+* Activate the virtual environment `source bin/activate`
 * Install dependencies by running `pip install -r requirements.txt`
 * See the sample csv file for the correct layout- alternatively change the column mappings in metadata_import.py to match your layout
 * Place your csv file in the input folder and rename it metadata.csv
