@@ -11,3 +11,4 @@ share/
 lib/
 pyvenv.cfg
 python/error.log
+output/*.xml
