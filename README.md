@@ -4,7 +4,7 @@ A python script for exporting gemini compliant metadata from a csv file to indiv
 
 **This branch is compliant with Gemini 2.3 and Python 3.**
 
-### How do I get set up? ###
+## How do I get set up? ##
 
 * Create a python 3 virtual environment in the root directory `python3 -m venv .`
 * Activate the virtual environment `source bin/activate`
@@ -18,7 +18,7 @@ A python script for exporting gemini compliant metadata from a csv file to indiv
 * Encoding errors in the source CSV may currently cause the script to fail. The offending bytecode will be shown in the error message so you can replace it in the source data with the correct symbol
 * When importing the records into Geonetwork, use the *_to_gemini* xsl
 
-### Data Specifics ###
+## Data Specifics ##
 
 * Creation Date and Revision Date can be of the form YYYY-MM-DD or DD/MM/YYYY
 * Descriptive Keywords can be a comma-separated list
@@ -46,8 +46,8 @@ A python script for exporting gemini compliant metadata from a csv file to indiv
 * Temporal Extent can be a comma-separated list (begin date, end date) but dates must be in form YYYY-MM-DD or DD/MM/YYYY
 * Data Format and Version can be comma-separated lists but must come from provided lists of formats and versions, see [iso19139.gemini23/loc/eng/labels.xml](https://github.com/AstunTechnology/iso19139.gemini23/blob/3.12.x/src/main/plugin/iso19139.gemini23/loc/eng/labels.xml#L1612)
 * Data Quality Info must be one of dataset or nonGeographicDataset (case-sensitive)
-* Inspire theme (case-sensitive) must come from the [INSPIRE Themes Thesaurus](https://www.eionet.europa.eu/gemet/en/inspire-themes/) (can now be a comma-delimited list)
-* Update Frequency is case-sensitive, choose from the following codes:
+* Inspire theme (case-sensitive) must come from the [INSPIRE Themes Thesaurus](https://www.eionet.europa.eu/gemet/en/inspire-themes/) (can be a comma-separtated list)
+* Update Frequency is case-sensitive, choose one of the following codes:
   * continual
   * daily
   * weekly

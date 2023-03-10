@@ -25,7 +25,7 @@ class TestMetadataImport(unittest.TestCase):
     def setUp(self):
         # remove existing output files
         for file in os.listdir('../output/'):
-            if file != '.gitignore':
+            if file not in ['.gitignore']:
                 os.remove('../output/' + file)
 
         logging.basicConfig(filename='error.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -33,11 +33,18 @@ class TestMetadataImport(unittest.TestCase):
 
     def testMetadataImport(self):
         raw_data = []
-        numrows = 2
-        with open('../input/metadata.csv') as csvfile:
-            reader = csv.reader(csvfile, dialect='excel')
-            for columns in reader:
-                raw_data.append(columns)
+        numrows = (input('Please enter the number of rows you want to be parsed from metadata.csv \nAlternatively, just type in "all", for parsing all the lines\n'))
+
+        with open('../input/metadata.csv', 'r') as csvfile:
+            if numrows != 'all':
+                file = [line.rstrip('\n') for line in csvfile][:int(numrows)+1]
+                reader = csv.reader(file, dialect='excel')
+                for columns in reader:
+                    raw_data.append(columns)
+            else:
+                reader = csv.reader(csvfile, dialect='excel')
+                for columns in reader:
+                    raw_data.append(columns)    
 
                 # columns order:
                 """
@@ -110,7 +117,7 @@ class TestMetadataImport(unittest.TestCase):
                 titleElement = identificationInfo[0].getElementsByTagName('gmd:title')[0]
                 titleNode = record.createTextNode(title)
                 titleElement.childNodes[1].appendChild(titleNode)
-                print ("Title: " + title)
+                print ("\nTitle: " + title)
 
                 # add alternative title
                 altTitle = data[1]
@@ -268,7 +275,7 @@ class TestMetadataImport(unittest.TestCase):
                 dataQualityElement.appendChild(dataQualityNode)
                 #dataQualityDescElement.childNodes[1].appendChild(dataQualityDescNode)
                 print ("dataquality: " + dataQuality)
-                 
+                
             
                 # add geographic extents - no need to transform as it's in wgs84
                 bng = CRS('epsg:27700')

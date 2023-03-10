@@ -9,6 +9,6 @@ input/*.*#
 share/
 *.*~
 lib/
+lib64
 pyvenv.cfg
 python/error.log
-output/*.xml
