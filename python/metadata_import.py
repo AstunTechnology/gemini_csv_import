@@ -25,7 +25,8 @@ class TestMetadataImport(unittest.TestCase):
     def setUp(self):
         # remove existing output files
         for file in os.listdir('../output/'):
-            os.remove('../output/' + file)
+            if file != '.gitignore':
+                os.remove('../output/' + file)
 
         logging.basicConfig(filename='error.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
