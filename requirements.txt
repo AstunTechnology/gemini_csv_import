@@ -1,6 +1,6 @@
 arrow
 backports.functools-lru-cache
-OWSLib==0.24.1
+OWSLib==0.28.1
 #pkg-resources
 pyproj
 python-dateutil
