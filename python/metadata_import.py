@@ -14,6 +14,7 @@ import xml.dom.minidom as minidom
 import owslib
 from owslib.iso import *
 import pyproj
+from pyproj import CRS
 from decimal import *
 import logging
 import arrow
@@ -36,39 +37,39 @@ class TestMetadataImport(unittest.TestCase):
             reader = csv.reader(csvfile, dialect='excel')
             for columns in reader:
                 raw_data.append(columns)
-                """
-                        title = columns[0]
-                        alt_title = columns[1]
-                        creation_date = columns[2]
-                        revsion_date = columns[3]
-                        abstract = columns[4]
-                        pointofcontact_name = columns[5]
-                        pointofcontact_email = columns[6]
-                        pointofcontact_address = columns[7]
-                        pointofcontact_org = columns[8]
-                        pointofcontact_position = columns[9]
-                        keyword = columns[10]
-                        use_limitation = columns[11]
-                        licence_constraints = columns[12]
-                        copyright_constraints = columns[13]
-                        topic_category = columns[14]
-                        west_bc = columns[15]
-                        east_bc = columns[16]
-                        north_bc = columns[17]
-                        south_bc = columns[18]
-                        extent = columns[19]
-                        temp_extent = columns[20]
-                        data_format = columns[21]
-                        data_version = columns [22]
-                        transfer_protocol = columns[23]
-                        transfer_url = columns[24]
-                        data_quality = columns[25]
-                        lineage = columns[26]
-                        update_freq = columns[27]
-                        inspire_keyword = columns[28]
-                        denominator = columns[29]
 
-                print "title: " + title
+                # columns order:
+                """
+                    title = columns[0]
+                    alt_title = columns[1]
+                    creation_date = columns[2]
+                    revsion_date = columns[3]
+                    abstract = columns[4]
+                    pointofcontact_name = columns[5]
+                    pointofcontact_email = columns[6]
+                    pointofcontact_address = columns[7]
+                    pointofcontact_org = columns[8]
+                    pointofcontact_position = columns[9]
+                    keyword = columns[10]
+                    use_limitation = columns[11]
+                    licence_constraints = columns[12]
+                    copyright_constraints = columns[13]
+                    topic_category = columns[14]
+                    west_bc = columns[15]
+                    east_bc = columns[16]
+                    north_bc = columns[17]
+                    south_bc = columns[18]
+                    extent = columns[19]
+                    temp_extent = columns[20]
+                    data_format = columns[21]
+                    data_version = columns [22]
+                    transfer_protocol = columns[23]
+                    transfer_url = columns[24]
+                    data_quality = columns[25]
+                    lineage = columns[26]
+                    update_freq = columns[27]
+                    inspire_keyword = columns[28]
+                    denominator = columns[29]
                 """
         # compare the number of rows in the csv (eg 1112) with the number of entries in the list
         #self.assertEqual(numrows, len(raw_data), 'Wrong number of rows')
@@ -108,21 +109,21 @@ class TestMetadataImport(unittest.TestCase):
                 titleElement = identificationInfo[0].getElementsByTagName('gmd:title')[0]
                 titleNode = record.createTextNode(title)
                 titleElement.childNodes[1].appendChild(titleNode)
-                print ("Title:" + title)
+                print ("Title: " + title)
 
                 # add alternative title
                 altTitle = data[1]
                 altTitleElement = identificationInfo[0].getElementsByTagName('gmd:alternateTitle')[0]
                 altTitleNode = record.createTextNode(altTitle)
                 altTitleElement.childNodes[1].appendChild(altTitleNode)
-                print ("Alt Title:" + altTitle)
+                print ("Alt Title: " + altTitle)
 
                 # add abstract
                 abstract = data[4]
                 abstractElement = identificationInfo[0].getElementsByTagName('gmd:abstract')[0]
                 abstractNode = record.createTextNode(abstract)
                 abstractElement.childNodes[1].appendChild(abstractNode)
-                print ("Abstract" + abstract)
+                print ("Abstract: " + abstract)
 
                 # add topics from comma-separated list
                 topics = data[14].split(',')
@@ -148,22 +149,23 @@ class TestMetadataImport(unittest.TestCase):
                         newInspirekeywordElement.appendChild(newInspirekeywordStringElement)
                         inspireKeywordElement.insertBefore(newInspirekeywordElement,identificationInfo[0].getElementsByTagName('gmd:type')[0])
                         print ("Inspire Keyword: " + k)
-                    else:
-                        # don't fail if there are no inspire keywords
-                        print ("No INSPIRE Keywords")
+                else:
+                    # don't fail if there are no inspire keywords
+                    print ("No INSPIRE Keywords")
 
                 # add free text keywords from comma-separated list
                 # strip any spaces from beginning or end of each item
+
                 keywords = data[10].split(',')
                 keywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[1]
                 for i, k in enumerate(keywords):
-                    print ("Descriptive Keyword: " + k)
                     newkeywordElement = record.createElement('gmd:keyword')
                     newkeywordStringElement = record.createElement('gco:CharacterString')
                     newkeywordNode = record.createTextNode(k.strip())
                     newkeywordStringElement.appendChild(newkeywordNode)
                     newkeywordElement.appendChild(newkeywordStringElement)
                     keywordElement.insertBefore(newkeywordElement,identificationInfo[0].getElementsByTagName('gmd:type')[1])
+                    print ("Descriptive Keyword: " + k.strip())
                     
 
                 # add lineage
@@ -171,7 +173,7 @@ class TestMetadataImport(unittest.TestCase):
                 lineageElement = dataQualityInfo[0].getElementsByTagName('gmd:lineage')[0]
                 lineageNode = record.createTextNode(lineage)
                 lineageElement.childNodes[1].childNodes[1].childNodes[1].appendChild(lineageNode)
-                print ("lineage: " + lineage)
+                print ("Lineage: " + lineage)
                 
 
                 # add temporal extent
@@ -268,8 +270,8 @@ class TestMetadataImport(unittest.TestCase):
                  
             
                 # add geographic extents - no need to transform as it's in wgs84
-                bng = pyproj.Proj(init='epsg:27700')
-                wgs84 = pyproj.Proj(init='epsg:4326')
+                bng = CRS('epsg:27700')
+                wgs84 = CRS('epsg:4326')
                 try:
                     west, east, north, south = data[15], data[16], data[17], data[18]
                     westNode = record.createTextNode(west)
@@ -298,7 +300,7 @@ class TestMetadataImport(unittest.TestCase):
                 licenceConstraint = data[12]
                 copyrightConstraint = data[13]
                 constraintsElement = identificationInfo[0].getElementsByTagName('gmd:MD_Constraints')[0]
-                print ("break")
+                # print ("break")
                 for i in (data[11:14]):
                     print ("Use Limitation: " + i)
                     newUseLimitationNode = record.createElement('gmd:useLimitation')
@@ -374,7 +376,7 @@ class TestMetadataImport(unittest.TestCase):
                 creationDateElement = identificationInfo[0].getElementsByTagName('gmd:date')[0]
                 creationDateNode = record.createTextNode(creationDate)
                 creationDateElement.childNodes[1].childNodes[1].childNodes[1].appendChild(creationDateNode)
-                print ("Creation date:" + creationDate)
+                print ("Creation date: " + creationDate)
 
                 if '/' in data[3]:
                     revisionDate = arrow.get(data[3],'DD/MM/YYYY').format('YYYY-MM-DD')

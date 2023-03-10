@@ -1,4 +1,3 @@
-output/*.xml
 prev_imports
 *.*~
 *.zip
@@ -12,6 +11,3 @@ share/
 lib/
 pyvenv.cfg
 python/error.log
-
-
-
