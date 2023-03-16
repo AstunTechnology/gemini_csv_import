@@ -13,6 +13,11 @@ A python script for exporting gemini compliant metadata from a csv file to indiv
 * Place your csv file in the input folder and rename it `metadata.csv`
 * Change to the python directory
 * Run `python metadata_import.py`
+  * The script can take the following command-line arguments:
+    * `-n [number]` or `--numrows [number]`- the `[number]` will dictate how many of the rows in the `metadata.csv` to be parsed and exported
+    * `-a` or `--all`- to parse and export all the rows in `metadata.csv`
+    * `-h` or `--help`- will display instructions on how to run the script
+  * If no command-line arguments are passed when the script is ran, a user prompt will request the number of rows to be parsed and exported, the accepted values are either a number or `all`.
 * Your xml files will miraculously appear in the output folder
 * Check error.log in the python folder for details of any records that failed- these will be listed by title with the details of the error
 * Encoding errors in the source CSV may currently cause the script to fail. The offending bytecode will be shown in the error message so you can replace it in the source data with the correct symbol

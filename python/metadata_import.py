@@ -3,6 +3,7 @@
 '''
 @author: Brian O'Hare
 '''
+
 import os
 import sys
 import unittest
@@ -18,7 +19,10 @@ from pyproj import CRS
 from decimal import *
 import logging
 import arrow
+import getopt
 
+# command-line arguments for the number of rows to be parsed have to be stored in a global variable so they can then be used inside unittest 
+command_line_arg_numrows = None
 
 class TestMetadataImport(unittest.TestCase):
 
@@ -33,54 +37,68 @@ class TestMetadataImport(unittest.TestCase):
 
     def testMetadataImport(self):
         raw_data = []
-        numrows = (input('Please enter the number of rows you want to be parsed from metadata.csv \nAlternatively, just type in "all", for parsing all the lines\n'))
+
+        # check if there is a command-line argument, otherwise request user input
+        if command_line_arg_numrows == None:
+            numrows = (input('Please enter the number of rows you want to be parsed from metadata.csv \nAlternatively, just type in "all", for parsing all the lines\n'))        
+        else:
+            numrows = command_line_arg_numrows
 
         with open('../input/metadata.csv', 'r') as csvfile:
-            if numrows != 'all':
-                file = [line.rstrip('\n') for line in csvfile][:int(numrows)+1]
-                reader = csv.reader(file, dialect='excel')
-                for columns in reader:
-                    raw_data.append(columns)
-            else:
-                reader = csv.reader(csvfile, dialect='excel')
-                for columns in reader:
-                    raw_data.append(columns)    
 
-                # columns order:
-                """
-                    title = columns[0]
-                    alt_title = columns[1]
-                    creation_date = columns[2]
-                    revsion_date = columns[3]
-                    abstract = columns[4]
-                    pointofcontact_name = columns[5]
-                    pointofcontact_email = columns[6]
-                    pointofcontact_address = columns[7]
-                    pointofcontact_org = columns[8]
-                    pointofcontact_position = columns[9]
-                    keyword = columns[10]
-                    use_limitation = columns[11]
-                    licence_constraints = columns[12]
-                    copyright_constraints = columns[13]
-                    topic_category = columns[14]
-                    west_bc = columns[15]
-                    east_bc = columns[16]
-                    north_bc = columns[17]
-                    south_bc = columns[18]
-                    extent = columns[19]
-                    temp_extent = columns[20]
-                    data_format = columns[21]
-                    data_version = columns [22]
-                    transfer_protocol = columns[23]
-                    transfer_url = columns[24]
-                    data_quality = columns[25]
-                    lineage = columns[26]
-                    update_freq = columns[27]
-                    inspire_keyword = columns[28]
-                    denominator = columns[29]
-                """
-        # compare the number of rows in the csv (eg 1112) with the number of entries in the list
-        #self.assertEqual(numrows, len(raw_data), 'Wrong number of rows')
+            # count the number of lines in 'metadata.csv' and reset  the file stream
+            input_linescount = len(csvfile.readlines())
+            csvfile.seek(0, 0)
+
+            if numrows == 'all' or numrows.isnumeric():
+                if numrows != 'all' and int(numrows) < input_linescount:
+                    file = [line.rstrip('\n') for line in csvfile][:int(numrows)+1]
+                    reader = csv.reader(file, dialect='excel')
+                    for columns in reader:
+                        raw_data.append(columns)                        
+                elif numrows == 'all' or int(numrows) > input_linescount:
+                    reader = csv.reader(csvfile, dialect='excel')
+                    for columns in reader:
+                        raw_data.append(columns)
+                    if numrows != 'all' and int(numrows) > input_linescount:
+                        print(f'The number of rows you have entered ({numrows}) was greater than the number of rows in the "metadata.csv" file ({input_linescount}) so all lines have been parsed and exported.')
+            else:
+                print(f'The value you have entered ({numrows}) is not valid, please try again. If you need help using this script try running "metadata_import.py -h"') 
+
+            # columns order:
+            """
+                title = columns[0]
+                alt_title = columns[1]
+                creation_date = columns[2]
+                revsion_date = columns[3]
+                abstract = columns[4]
+                pointofcontact_name = columns[5]
+                pointofcontact_email = columns[6]
+                pointofcontact_address = columns[7]
+                pointofcontact_org = columns[8]
+                pointofcontact_position = columns[9]
+                keyword = columns[10]
+                use_limitation = columns[11]
+                licence_constraints = columns[12]
+                copyright_constraints = columns[13]
+                topic_category = columns[14]
+                west_bc = columns[15]
+                east_bc = columns[16]
+                north_bc = columns[17]
+                south_bc = columns[18]
+                extent = columns[19]
+                temp_extent = columns[20]
+                data_format = columns[21]
+                data_version = columns [22]
+                transfer_protocol = columns[23]
+                transfer_url = columns[24]
+                data_quality = columns[25]
+                lineage = columns[26]
+                update_freq = columns[27]
+                inspire_keyword = columns[28]
+                denominator = columns[29]
+            """
+
 
         with open('dataset_empty.xml') as gemini:
             doc = minidom.parseString(gemini.read().encode( "utf-8" ))
@@ -145,7 +163,6 @@ class TestMetadataImport(unittest.TestCase):
 
                 # add inspire keywords from comma-separated list
                 # strip spaces from beginning or end of each item
-
                 inspireKeywords = data[28].split(',')
                 if inspireKeywords:
                     inspireKeywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[0]
@@ -163,7 +180,6 @@ class TestMetadataImport(unittest.TestCase):
 
                 # add free text keywords from comma-separated list
                 # strip any spaces from beginning or end of each item
-
                 keywords = data[10].split(',')
                 keywordElement = identificationInfo[0].getElementsByTagName('gmd:MD_Keywords')[1]
                 for i, k in enumerate(keywords):
@@ -174,8 +190,7 @@ class TestMetadataImport(unittest.TestCase):
                     newkeywordElement.appendChild(newkeywordStringElement)
                     keywordElement.insertBefore(newkeywordElement,identificationInfo[0].getElementsByTagName('gmd:type')[1])
                     print ("Descriptive Keyword: " + k.strip())
-                    
-
+                
                 # add lineage
                 lineage = data[26]
                 lineageElement = dataQualityInfo[0].getElementsByTagName('gmd:lineage')[0]
@@ -183,13 +198,11 @@ class TestMetadataImport(unittest.TestCase):
                 lineageElement.childNodes[1].childNodes[1].childNodes[1].appendChild(lineageNode)
                 print ("Lineage: " + lineage)
                 
-
                 # add temporal extent
                 dates = data[20].split(',')
                 beginDate, endDate = '', ''
                 if len(dates) == 2:
                     if '/' in data[20]:
-
                         beginDate = arrow.get(dates[0],'DD/MM/YYYY').format('YYYY-MM-DD')
                         endDate = arrow.get(dates[1],'DD/MM/YYYY').format('YYYY-MM-DD')
                     elif '-' in data[20]:
@@ -197,7 +210,6 @@ class TestMetadataImport(unittest.TestCase):
                         endDate = dates[1]
                     else:
                         print ("Temp extent dates in wrong format")
-
                     print ("Beginning date: " + beginDate)
                     print ("End date: " + endDate)
                 else:
@@ -308,7 +320,6 @@ class TestMetadataImport(unittest.TestCase):
                 licenceConstraint = data[12]
                 copyrightConstraint = data[13]
                 constraintsElement = identificationInfo[0].getElementsByTagName('gmd:MD_Constraints')[0]
-                # print ("break")
                 for i in (data[11:14]):
                     print ("Use Limitation: " + i)
                     newUseLimitationNode = record.createElement('gmd:useLimitation')
@@ -320,9 +331,6 @@ class TestMetadataImport(unittest.TestCase):
                     newUseLimitationStringElement.appendChild(newUseLimitationStringNode)
                     newUseLimitationNode.appendChild(newUseLimitationStringElement)
                     constraintsElement.appendChild(newUseLimitationNode)
-                    
-
-
 
                 # Points of Contact
                 # TODO copy to top-level gmd:contact too
@@ -413,12 +421,12 @@ class TestMetadataImport(unittest.TestCase):
                 print ("Scale: " + denominator)
 
 
-
                 # write out the gemini record
                 filename = '../output/%s.xml' % fileId
                 with open(filename,'wb') as test_xml:
                     test_xml.write(record.toprettyxml(newl="", encoding="utf-8"))
-                    #print ("test")
+
+
             except:
                 e = sys.exc_info()[1]
                 logging.debug("Import failed for entry %s" % data[0])
@@ -440,5 +448,34 @@ class TestMetadataImport(unittest.TestCase):
         outfile.write(md.xml)
 
 
+def getArguments(argv):
+    numrows = ""
+    opts, args = getopt.getopt(argv,"han:",["help","all", "numrows="])
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            print ("usage: test.py [-h | --help] [-a | --all] [-n NUMBER | --numrows NUMBER]\n")
+            print ("optional arguments: \n", 
+                   "-h, --help \t\t\t show this help message and exit\n",
+                   "-a, --all \t\t\t parse all the rows in metadata.csv\n",
+                   "-n NUMBER, --numrows NUMBER \t the number of rows you want to parse from metadata.csv")
+            sys.exit()
+
+        elif opt in ("-n", "--numrows"):
+            numrows = arg
+            print ("Parsing", numrows, "rows from metadata.csv")
+            return numrows
+
+        elif opt in ("-a", "--all"):
+            numrows = "all"
+            print ("Parsing all the rows in metadata.csv")
+            return numrows
+
 if __name__ == "__main__":
+
+    # command-line arguments have to be stored in a variable before unittest runs, otherwise there is an error
+    command_line_arg_numrows = getArguments(sys.argv[1:])
+
+    # any command-line arguments passed outside of unittest have to be deleted before unittest runs, otherwise there is an error 
+    del sys.argv[1:]
+
     unittest.main()
